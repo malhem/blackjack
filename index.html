@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Black Jack</title>
+    <link rel="stylesheet" href="blackjack.css">
+    <script src="blackjack.js"></script>
+</head>
+<body>
+    <div id="container">
+        <div id="topContainer">
+            <h2>Dealer: <span id="dealer-sum"></span></h2>
+            <div class="cardContainer">
+                <img id="deck" src="./cards/back.png">
+                <div id="dealer-cards"></div>
+            </div> 
+        </div>
+        <div id="botContainer">
+            <h2>You: <span id="player-sum"></span></h2>
+            <div class="cardContainer">
+                <div id="player-cards"></div>
+            </div>
+            <br>
+            <button id="hit">Hit</button>
+            <button id="stay">Stay</button>
+            <h2>Balance: <span id="balance">100$</span></h2>
+        </div>
+    </div>
+    <div id="bet">
+        <h1>Choose amount to bet:</h1>
+        <div id="betBtns"> 
+            <button id="five" onclick="start(5)">5$</button>
+            <button id="twenty" onclick="start(20)">20$</button>
+            <button id="hundred" onclick="start(100)">100$</button>
+        </div>   
+    </div>
+    <div id="insurance" style="display: none">
+        <div id="insText">
+            <h1>The dealer shows an Ace. You are now allowed to place an insurance bet amounting to half of your original bet if you believe the dealer has Blackjack.</h1>
+        </div>
+        <div id="insuranceBtns"> 
+            <button id="skip" onclick="insurance(true)">Pass</button>
+            <button id="insuranceBet" onclick="insurance(false)">Bet</button>
+        </div>   
+    </div>
+    <div id="resultScreen">
+        <span id="result"></span>
+        <button hidden="true" onclick="buyIn()" id="buyIn">Buy in: 100$</button>
+    </div>
+</body>
+</html>
