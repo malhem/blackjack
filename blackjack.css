@@ -1,9 +1,12 @@
 html, body, #container{
     font-family: 'Times New Roman', Times, serif;
     text-align: center;
-    height: 98%;
-    background-color: black;
+    height: 100%;
+    width: 100%;
+    background-color: #221616;
     position: relative;
+    overflow: hidden;
+    margin: 0;
 }
 
 #container{
@@ -12,8 +15,9 @@ html, body, #container{
     background-color: green;
     border-bottom-left-radius: 60%;
     border-bottom-right-radius: 60%;
+    border: 4px solid black;
     position: absolute;
-    width: 100%;
+    height: 95%;
 }
 
 #topContainer, #botContainer{
@@ -68,8 +72,9 @@ html, body, #container{
 
 #hit, #stay{
     width: 8%;
-    height: 18%;
+    height: 20%;
     font-size: 2vw;
+    border: 2px solid black;
 }
 
 h2, #balance{
@@ -81,14 +86,9 @@ h2, #balance{
     z-index: 10;
     width: 100%;
     height: 100%;
-    background-color: black;
+    background-color: rgb(0, 0, 0);
     color: white;
     opacity: 0.8;
-    
-    /*display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;*/
 }
 
 #betBtns, #insuranceBtns, h1, #insText{
@@ -110,6 +110,10 @@ h1{
     font-size: 3vw;
 }
 
+button{
+    border: 2px solid #ff4646;
+}
+
 #hundred, #twenty, #five, #skip, #insuranceBet{
     text-align: center;
     font-size: 3vw;
@@ -118,6 +122,10 @@ h1{
     background-color: white;
     opacity: 1;
     margin: 2px;
+}
+
+#hundred:hover, #twenty:hover, #five:hover, #skip:hover, #insuranceBet:hover, button:hover{
+    background-color: rgb(160, 160, 160);
 }
 
 #resultScreen{
@@ -129,12 +137,21 @@ h1{
     background-color: black;
     color: white;
     opacity: 0.8;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
 }
 
 #result{
     font-size: 3vw;
+    margin-top: -10%;
+}
+
+#buyIn{
+    margin: 2%;
+    height: 8%;
+    width: 15%;
+    font-size: 2vw;
 }
 
 @-webkit-keyframes slideRight{

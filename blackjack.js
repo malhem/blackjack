@@ -24,6 +24,7 @@ function start(amount){
     buildDeck();
     shuffle();
     dealFirstHand();
+    console.log(deck);
 }
 
 function buildDeck(){
