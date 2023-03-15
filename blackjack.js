@@ -80,8 +80,6 @@ async function dealFirstHand(){
 
         hideCard = true;
     }
-
-    updateSum();
     checkFirstHand()
 }
 
@@ -104,6 +102,7 @@ function checkFirstHand(){
 
     document.getElementById("hit").addEventListener("click", hit);
     document.getElementById("stay").addEventListener("click", stay);
+    updateSum();
 }
 
 function hit(){
@@ -135,7 +134,7 @@ async function stay(){
     showCard();
 
     while(dealerSum < 17){
-        await sleep(1000);
+        await sleep(750);
 
         card = deck.pop();
         dealerAceCount += checkAce(card);

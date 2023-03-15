@@ -56,8 +56,8 @@ html, body, #container{
     width: 8%;
     margin: 1px;
     box-shadow: 10px 10px 5px -2px;
-    margin-right: 17%;
-    margin-left: -25%;
+    margin-right: 25%;
+    margin-left: -33%;
 }
 
 #player-cards img{
@@ -155,22 +155,22 @@ button{
 }
 
 @-webkit-keyframes slideRight{
-    0%{transform: translateX(-50%);}
+    0%{transform: translateX(-80%);}
     100%{transform: translateX(0);}
 }
 
 @keyframes slideRight{
-    0%{transform: translateX(-50%);}
+    0%{transform: translateX(-80%);}
     100%{transform: translateX(0);}
 }
 
 @-webkit-keyframes slideDown{
-    0%{transform: translate(-50%, -80%);}
+    0%{transform: translate(-50%, -90%);}
     100%{transform: translate(0);}
 }
 
 @keyframes slideDown{
-    0%{transform: translate(-50%, -80%);}
+    0%{transform: translate(-50%, -90%);}
     100%{transform: translate(0);}
 }
 
