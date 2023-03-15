@@ -95,7 +95,7 @@ function checkFirstHand(){
         }
         else showCard();
         if(dealerSum < 21){
-            endGame(1.5, "Blackjack! You win. Payout 1.5x.");
+            endGame(1.5, "Blackjack! You win." + "\n" + "Payout 1.5x.");
         }
     }
     else if(dealerAceCount > 0){
@@ -118,7 +118,7 @@ function hit(){
     document.getElementById("player-cards").append(image);
 
     if(playerSum == 21 && dealerSum < 21 && dealerSum > 16){
-        endGame(2, "You win! Payout 2x.")
+        endGame(2, "You win!" + "\n" + "Payout 2x.")
     }
     else if(playerSum > 21){
         playerSum = lowerAce(playerSum, playerAceCount, "player");
@@ -148,10 +148,10 @@ async function stay(){
         updateSum();
     }
 
-    if(dealerSum > 21) endGame(2, "Dealer went bust! You win. Payout 2x.");
-    else if(playerSum > dealerSum) endGame(2, "You win! Payout 2x.");
+    if(dealerSum > 21) endGame(2, "Dealer went bust. You win!" + "\n" + "Payout 2x.");
+    else if(playerSum > dealerSum) endGame(2, "You win!" + "\n" + "Payout 2x.");
     else if(playerSum < dealerSum) endGame(0, "You lose!");
-    else endGame(1, "Game ends in a tie! Payout 1x.");
+    else endGame(1, "Game ends in a tie!" + "\n" + "Payout 1x.");
 }
 
 async function endGame(multiplier, text){
@@ -248,21 +248,21 @@ async function insurance(bool){
         showCard();
         
         if(bool){
-            if(playerSum == 21) endGame(1, "Game ends in a tie! Payout 1x.");
-            else endGame(0, "You lose!");
+            if(playerSum == 21) endGame(1, "Game ends in a tie!" + "\n" + "Payout 1x.");
+            else endGame(0, "Dealer has Blackjack! You lose.");
             return;
         }
 
         playerBalance += insuranceBet;
         document.getElementById("balance").innerHTML = playerBalance + "$";
         document.getElementById("resultScreen").style.display = "flex";
-        document.getElementById("result").innerText = "Dealer has Blackjack. You won the insurance bet. Payout 2x insurance bet.";
+        document.getElementById("result").innerText = "Dealer has Blackjack. You won the insurance bet." + "\n" + "Payout 2x insurance bet.";
 
         await sleep(3000);
         document.getElementById("resultScreen").style.display = "none";
         
-        if(playerSum == 21) endGame(1, "The game ends in a tie! Payout 1x.")
-        else endGame(0, "You lose!")
+        if(playerSum == 21) endGame(1, "The game ends in a tie!" + "\n" + "Payout 1x.")
+        else endGame(0, "Dealer has Blackjack! You lose.")
     }
     else{
         if(bool) return;

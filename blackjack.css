@@ -177,22 +177,18 @@ button{
 @media only screen and (max-width: 950px) {
     #dealer-cards, #player-cards{
         width: 50%;
-        height: 80%;
+        height: 60%;
     }
 
-    #dealer-cards{
-        justify-content: flex-start;
-    }
-    
     #deck{
-        height: 80%;
-        width: 15%;
-        margin-right: 10%;
-        margin-left: -20%;
+        height: 60%;
+        width: 12%;
+        margin-right: 13%;
+        margin-left: -25%;
     }
 
     #dealer-cards img, #player-cards img{
-        width: 30%;
+        width: 24%;
     }
 
     #hit, #stay{
