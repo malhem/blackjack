@@ -1,30 +1,25 @@
 var dealerSum = 0;
 var dealerAceCount = 0;
+var dealerHiddenCard;
 
 var playerSum = 0;
-var playerBalance = 100;
+var playerSplitSum = 0;
 var playerAceCount = 0;
-
-var deck;
-var dealerHiddenCard;
+var playerSplitAceCount = 0;
+var playerBalance = 100;
 var playerHiddenCard;
+var playerHand = [];
+
 var canHit = true;
 var isDoubleDown = false;
+var isSplit = false;
+var onSecondHand = false;
 var bet = 0;
 var insuranceBet = 0;
-
-var insuranceMsg = "The dealer shows an Ace." + "\n" + "You are now allowed to place an insurance bet amounting to half of your original bet if you believe the dealer has Blackjack.";
-var insBlackJack = "Dealer has Blackjack. You won the insurance bet." + "\n" + "Payout 2x insurance bet.";
-var insNoBlackJack = "Dealer does not have Blackjack. You lost the insurance bet.";
-var dealerBustMsg = "Dealer went bust. You win!" + "\n" + "Payout 2x.";
-var winMsg = "You win!" + "\n" + "Payout 2x.";
-var winDdMsg = "You win!" + "\n" + "Payout 4x original bet.";
-var loseMsg = "You lose!";
-var tieMsg = "Game ends in a tie!" + "\n" + "Bet is returned";
+var deck;
 
 function start(amount){
-    clear();
-    canHit = true;
+    reset();
     bet = amount;
     playerBalance -= bet;
 
@@ -68,6 +63,8 @@ async function dealFirstHand(){
         let card = deck.pop();
         playerSum += getValue(card);
         playerAceCount += checkAce(card);
+        playerHand[i] = card;
+        
         let image = document.createElement("img");
         image.src = "./cards/" + card + ".png";
         document.getElementById("player-cards").append(image);
@@ -94,6 +91,10 @@ async function dealFirstHand(){
 }
 
 function checkFirstHand(){
+    if(playerHand[0].split("-")[0] == playerHand[1].split("-")[0]){
+        document.getElementById("split").disabled = false;
+    }
+
     if(playerSum == 22){
         playerSum = lowerAce(playerSum, playerAceCount, "player");
     }
@@ -120,7 +121,32 @@ function checkFirstHand(){
     document.getElementById("hit").addEventListener("click", hit);
     document.getElementById("stay").addEventListener("click", stay);
     document.getElementById("doubleDown").addEventListener("click", doubleDown);
+    document.getElementById("split").addEventListener("click", split);
     updateSum();
+}
+
+function split(){
+    isSplit = true;
+
+    document.getElementById("split").disabled = true;
+    document.getElementById("doubleDown").disabled = true;
+    document.getElementById("player-cards").firstChild.remove();
+    document.getElementById("player-cards").style.marginRight = "-15%";
+    document.getElementById("player-cards").style.marginLeft = "15%";
+
+    playerBalance -= bet;
+    document.getElementById("balance").innerHTML = playerBalance + "$";
+
+    let splitCard = playerHand[0];
+    playerSum -= getValue(splitCard);
+    playerAceCount -= checkAce(splitCard);
+    playerSplitSum += getValue(splitCard);
+    playerSplitAceCount += checkAce(splitCard);
+    updateSum();
+    
+    let image = document.createElement("img");
+    image.src = "./cards/" + splitCard + ".png";
+    document.getElementById("splitHolder").append(image);
 }
 
 function toggleOverlay(overlay, message, change = false){
@@ -129,12 +155,9 @@ function toggleOverlay(overlay, message, change = false){
         document.getElementById("overlay").style.display = "none";
         return;
     }
-
-    document.getElementById("overlay").style.display = "flex";
-    document.getElementById("message").innerText = message;
     
+    let buttons = document.getElementById("overlayButtons").children;
     if(overlay == "bet"){
-        let buttons = document.getElementById("buttons").children;
         for(let i = 0; i < buttons.length; i++){
             if(buttons[i].className == "insBtns" || buttons[i].id == "buyIn"){
                 buttons[i].hidden = true;
@@ -145,7 +168,6 @@ function toggleOverlay(overlay, message, change = false){
         }
     }
     else if(overlay == "insurance"){
-        let buttons = document.getElementById("buttons").children;
         for(let i = 0; i < buttons.length; i++){
             if(buttons[i].className == "betBtns" || buttons[i].id == "buyIn"){
                 buttons[i].hidden = true;
@@ -156,7 +178,6 @@ function toggleOverlay(overlay, message, change = false){
         }
     }
     else if(overlay == "buyIn"){
-        let buttons = document.getElementById("buttons").children;
         for(let i = 0; i < buttons.length; i++){
             if(buttons[i].className == "betBtns" || buttons[i].className == "insBtns"){
                 buttons[i].hidden = true;
@@ -167,15 +188,24 @@ function toggleOverlay(overlay, message, change = false){
         }
     }
     else if(overlay == "result"){
-        let buttons = document.getElementById("buttons").children;
         for(let i = 0; i < buttons.length; i++){
             buttons[i].hidden = true;
         }
     }
+
+    document.getElementById("overlay").style.display = "flex";
+    document.getElementById("message").innerText = message;
 }
 
 function hit(){
+    document.getElementById("doubleDown").disabled = true;
+    document.getElementById("split").disabled = true;
+
     if(!canHit) return;
+    if(onSecondHand){
+        hitSecondHand();
+        return;
+    }
 
     let card = deck.pop();
     playerSum += getValue(card);
@@ -186,25 +216,100 @@ function hit(){
     document.getElementById("player-cards").append(image);
 
     if(playerSum == 21 && dealerSum < 21 && dealerSum > 16){
-        endGame(2, "You win!" + "\n" + "Payout 2x.")
+        endGame(2, winMsg)
     }
     else if(playerSum > 21){
         playerSum = lowerAce(playerSum, playerAceCount, "player");
         if(playerSum > 21){
+            if(isSplit) playSecondHand();
+            else{
+                showCard();
+                endGame(0, bustMsg);
+            }
+        }
+    }
+    updateSum();
+}
+
+function checkHands(){
+    if(dealerSum > 21){
+        if(playerSum <= 21){
+            if(playerSplitSum <= 21) endGame(4, winBothMsg);
+            else endGame(2, winOneMsg);
+        }
+        else{
+            if(playerSplitSum <= 21) endGame(2, winOneMsg);
+            else endGame(0, loseBothMsg);
+        }
+    }
+    else if(dealerSum == 21){
+        if(playerSum == 21){
+            if(playerSplitSum == 21) endGame(2, tieBothMsg);
+            else endGame(1, tieOneMsg);
+        }
+        else{
+            if(playerSplitSum == 21) endGame(1, tieOneMsg);
+            else endGame(0, loseBothMsg);
+        }
+    }
+    else{
+        if(playerSum > dealerSum && playerSum <= 21){
+            if(playerSplitSum > dealerSum && playerSplitSum <= 21) endGame(4, winBothMsg);
+            else if(playerSplitSum == dealerSum) endGame(3, winTieMsg);
+            else endGame(2, winOneMsg);
+        }
+        else{
+            if(playerSplitSum > dealerSum && playerSplitSum <= 21){
+                if(playerSum > dealerSum && playerSum <= 21) endGame(4, winBothMsg);
+                else if(playerSum == dealerSum) endGame(3, winTieMsg);
+                else endGame(2, winOneMsg);
+            }
+            else endGame(0, loseBothMsg);
+        }
+    }
+}
+
+function hitSecondHand(){
+    let card = deck.pop();
+    playerSplitSum += getValue(card);
+    playerSplitAceCount += checkAce(card);
+
+    let image = document.createElement("img");
+    image.src = "./cards/" + card + ".png";
+    document.getElementById("splitHolder").append(image);
+
+    if(playerSplitSum == 21 && dealerSum < 21 && dealerSum > 16){
+        checkHands();
+    }
+    else if(playerSplitSum > 21){
+        playerSplitSum = lowerAce(playerSplitSum, playerSplitAceCount, "playerSplit")
+
+        if(dealerSum < 17){
+            stay();
+        }
+        else if(playerSplitSum > 21){
             showCard();
-            endGame(0, "Bust! You lose.");
+            checkHands();
         }
     }
     updateSum();
 }
 
 async function stay(){
+    document.getElementById("doubleDown").disabled = true;
+    document.getElementById("split").disabled = true;
+
+    if(isSplit){
+        playSecondHand();
+        return;
+    }
+
     canHit = false;
     showCard();
 
     dealerSum = lowerAce(dealerSum, dealerAceCount);
+    updateSum();
     while(dealerSum < 17){
-        updateSum();
         await sleep(750);
 
         let card = deck.pop();
@@ -215,14 +320,18 @@ async function stay(){
         let image = document.createElement("img");
         image.src = "./cards/" + card + ".png";
         document.getElementById("dealer-cards").append(image);
+        updateSum();
     }
 
-    updateSum();
-    await sleep(750);
+    if(onSecondHand){
+        checkHands();
+        return;
+    }
+
     if(isDoubleDown){
+        await sleep(750);
         let image = document.getElementById("player-cards").lastChild;
         image.src = "./cards/" + playerHiddenCard + ".png";
-    
         return;
     }
 
@@ -232,7 +341,19 @@ async function stay(){
     else endGame(1, tieMsg);
 }
 
+function playSecondHand(){
+    isSplit = false;
+    onSecondHand = true;
+    document.querySelectorAll("#player-cards img").forEach(img => img.style.opacity = "0.5");
+    updateSum();
+}
+
 async function doubleDown(){
+    document.getElementById("doubleDown").disabled = true;
+    document.getElementById("split").disabled = true;
+    document.getElementById("hit").disabled = true;
+    document.getElementById("stay").disabled = true;
+
     canHit = false;
     isDoubleDown = true;
     playerBalance -= bet;
@@ -264,7 +385,7 @@ async function endGame(multiplier, message){
     document.getElementById("balance").innerHTML = playerBalance + "$";
     
     await sleep(1000);
-    toggleOverlay("result", message)
+    toggleOverlay("result", message, true);
 
     await sleep(3000);
     let lowBalance = await checkBalance();
@@ -303,20 +424,36 @@ function lowerAce(sum, aceCount, hand){
         sum -= 10;
         aceCount -= 1;
     }
-    hand == "player" ? playerAceCount = aceCount : dealerAceCount = aceCount;
+    //hand == "player" ? playerAceCount = aceCount : dealerAceCount = aceCount;
 
+    if(hand == "player") playerAceCount = aceCount;
+    else if(hand == "playerSplit") playerSplitAceCount = aceCount;
+    else dealerAceCount = aceCount
+    
     return sum;
 }
 
-function clear(){
+function reset(){
+    document.getElementById("hit").disabled = false;
+    document.getElementById("stay").disabled = false;
+    
     playerSum = 0;
+    playerSplitSum = 0;
+    playerAceCount = 0;
+    playerSplitAceCount = 0;
     dealerSum = 0;
     dealerAceCount = 0;
-    playerAceCount = 0;
+    canHit = true;
+    isDoubleDown = false;
+    isSplit = false;
+    onSecondHand = false;
     updateSum();
 
+    document.getElementById("player-cards").style.marginRight = "0";
+    document.getElementById("player-cards").style.marginLeft = "0";
     document.querySelectorAll("#dealer-cards img").forEach(img => img.remove());
     document.querySelectorAll("#player-cards img").forEach(img => img.remove());
+    document.querySelectorAll("#splitHolder img").forEach(img => img.remove());
 }
 
 function showCard(){
@@ -329,8 +466,12 @@ function showCard(){
 }
 
 function updateSum(){
+    var text;
+    if(onSecondHand || isSplit) text = playerSplitSum + " & " + playerSum;
+    else text = playerSum;
+
     document.getElementById("dealer-sum").innerText = dealerSum;
-    document.getElementById("player-sum").innerText = playerSum;
+    document.getElementById("player-sum").innerText = text;
 }
 
 

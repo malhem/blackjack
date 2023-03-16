@@ -37,7 +37,7 @@ html, body, #container{
     height: 100%;
     width: 16%;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
 } 
 
 #dealer-cards img, #player-cards img, #deck{
@@ -46,11 +46,26 @@ html, body, #container{
     margin: 1px;
 }
 
-#deck{
+#splitHolder{
+    display: flex;
+    justify-content: flex-start;
+    height: 100%;
     width: 8%;
+    margin-right: 17%;
+    margin-left: -25%;
+}
+
+#splitHolder img{
+    height: 100%;
+    width: 100%;
+    margin: 1px;
+}
+
+#deck{
     box-shadow: 10px 10px 5px -2px;
-    margin-right: 25%;
-    margin-left: -33%;
+    width: 8%;
+    margin-right: 17%;
+    margin-left: -25%;
 }
 
 #player-cards img{
@@ -63,9 +78,13 @@ html, body, #container{
     animation: slideRight 0.5s forwards;
 }
 
-#hit, #stay, #doubleDown{
-    width: 8%;
+#gameButtons{
     height: 20%;
+}
+
+#hit, #stay, #split, #doubleDown{
+    width: 8%;
+    height: 100%;
     font-size: 1.5vw;
     border: 2px solid black;
 }
@@ -99,12 +118,12 @@ h2{
     font-size: 2vw;
 }
 
-#buttons > #buyIn{
+#overlayButtons > #buyIn{
     height: 8%;
-    width: 15%;
+    width: 18%;
 }
 
-#buttons > button{
+#overlayButtons > button{
     border: 2px solid #ff4646;
     background-color: white;
     text-align: center;
@@ -113,7 +132,7 @@ h2{
     margin: 2px;
 }
 
-#buttons > button:hover{
+#overlayButtons > button:hover{
     background-color: rgb(160, 160, 160);
 }
 button:hover{
@@ -143,24 +162,25 @@ button:hover{
 
 @media only screen and (max-width: 950px) {
     #dealer-cards, #player-cards{
-        width: 50%;
-        height: 60%;
+        width: 55%;
+        height: 45%;
     }
 
+
     #deck{
-        height: 60%;
-        width: 12%;
-        margin-right: 13%;
-        margin-left: -25%;
+        height: 45%;
+        width: 11%;
+        margin-right: 10%;
+        margin-left: -20%;
     }
 
     #dealer-cards img, #player-cards img{
-        width: 24%;
+        width: 22%;
     }
 
-    #hit, #stay, #doubleDown{
+    #hit, #stay, #split, #doubleDown{
         width: 15%;
-        height: 15%;
+        height: 70%;
         font-size: 3vw;
     }
 
@@ -172,13 +192,13 @@ button:hover{
         font-size: 4vw;
     }
 
-    #buttons > button{
+    #overlayButtons > button{
         height: 5%;
         width: 12%;
         font-size: 3vw;
     }
 
-    #buttons > #buyIn{
+    #overlayButtons > #buyIn{
         width: 25%;
     }
 

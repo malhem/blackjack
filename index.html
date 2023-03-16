@@ -7,6 +7,7 @@
     <title>Blackjack</title>
     <link rel="stylesheet" href="blackjack.css">
     <script src="blackjack.js"></script>
+    <script src="strings.js"></script>
 </head>
 <body>
     <div id="container">
@@ -20,18 +21,22 @@
         <div id="botContainer">
             <h2>You: <span id="player-sum"></span></h2>
             <div class="cardContainer">
+                <div id="splitHolder"></div>
                 <div id="player-cards"></div>
             </div>
             <br>
-            <button id="hit">Hit</button>
-            <button id="stay">Stay</button>
-            <button id="doubleDown" disabled="true">Double down</button>
+            <div id="gameButtons">
+                <button id="hit">Hit</button>
+                <button id="stay">Stay</button>
+                <button id="split" disabled="true">Split</button>
+                <button id="doubleDown" disabled="true">Double down</button>
+            </div>
             <h2>Balance: <span id="balance">100$</span></h2>
         </div>
         <div id="overlay">
             <div id="content">
                 <h1 id="message">Choose amount to bet:</h1>
-                <div id="buttons"> 
+                <div id="overlayButtons"> 
                     <button id="five" class="betBtns" onclick="start(5)">5$</button>
                     <button id="twenty" class="betBtns" onclick="start(20)">20$</button>
                     <button id="hundred" class="betBtns" onclick="start(100)">100$</button>
