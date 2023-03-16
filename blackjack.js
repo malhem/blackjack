@@ -6,10 +6,21 @@ var playerBalance = 100;
 var playerAceCount = 0;
 
 var deck;
-var hiddenCard;
+var dealerHiddenCard;
+var playerHiddenCard;
 var canHit = true;
+var isDoubleDown = false;
 var bet = 0;
 var insuranceBet = 0;
+
+var insuranceMsg = "The dealer shows an Ace." + "\n" + "You are now allowed to place an insurance bet amounting to half of your original bet if you believe the dealer has Blackjack.";
+var insBlackJack = "Dealer has Blackjack. You won the insurance bet." + "\n" + "Payout 2x insurance bet.";
+var insNoBlackJack = "Dealer does not have Blackjack. You lost the insurance bet.";
+var dealerBustMsg = "Dealer went bust. You win!" + "\n" + "Payout 2x.";
+var winMsg = "You win!" + "\n" + "Payout 2x.";
+var winDdMsg = "You win!" + "\n" + "Payout 4x original bet.";
+var loseMsg = "You lose!";
+var tieMsg = "Game ends in a tie!" + "\n" + "Bet is returned";
 
 function start(amount){
     clear();
@@ -17,8 +28,7 @@ function start(amount){
     bet = amount;
     playerBalance -= bet;
 
-    document.getElementById("bet").style.display = "none";
-    document.getElementById("resultScreen").style.display = "none";
+    document.getElementById("overlay").style.display = "none";
     document.getElementById("balance").innerHTML = playerBalance + "$";
 
     buildDeck();
@@ -66,7 +76,7 @@ async function dealFirstHand(){
 
         card = deck.pop();
         if(hideCard){
-            hiddenCard = card;
+            dealerHiddenCard = card;
             card = "back";
         }
         else{
@@ -89,20 +99,79 @@ function checkFirstHand(){
     }
     else if(playerSum == 21){
         if(dealerAceCount > 0){
-            document.getElementById("insurance").style.display = "block";
+            toggleOverlay("insurance", insuranceMsg);
         }
         else showCard();
+        
         if(dealerSum < 21){
             endGame(1.5, "Blackjack! You win." + "\n" + "Payout 1.5x.");
         }
     }
+    else if(playerSum == 9 || playerSum == 10 || playerSum == 11){
+        if(dealerAceCount > 0){
+            toggleOverlay("insurance", insuranceMsg);
+        }
+        document.getElementById("doubleDown").disabled = false;
+    }
     else if(dealerAceCount > 0){
-        document.getElementById("insurance").style.display = "block";
+        toggleOverlay("insurance", insuranceMsg);
     }
 
     document.getElementById("hit").addEventListener("click", hit);
     document.getElementById("stay").addEventListener("click", stay);
+    document.getElementById("doubleDown").addEventListener("click", doubleDown);
     updateSum();
+}
+
+function toggleOverlay(overlay, message, change = false){
+    //If change == true, don't disable visible overlay - change it instead
+    if(document.getElementById("overlay").style.display == "flex" && !change){
+        document.getElementById("overlay").style.display = "none";
+        return;
+    }
+
+    document.getElementById("overlay").style.display = "flex";
+    document.getElementById("message").innerText = message;
+    
+    if(overlay == "bet"){
+        let buttons = document.getElementById("buttons").children;
+        for(let i = 0; i < buttons.length; i++){
+            if(buttons[i].className == "insBtns" || buttons[i].id == "buyIn"){
+                buttons[i].hidden = true;
+            }
+            else{
+                buttons[i].hidden = false;
+            }
+        }
+    }
+    else if(overlay == "insurance"){
+        let buttons = document.getElementById("buttons").children;
+        for(let i = 0; i < buttons.length; i++){
+            if(buttons[i].className == "betBtns" || buttons[i].id == "buyIn"){
+                buttons[i].hidden = true;
+            }
+            else{
+                buttons[i].hidden = false;
+            }
+        }
+    }
+    else if(overlay == "buyIn"){
+        let buttons = document.getElementById("buttons").children;
+        for(let i = 0; i < buttons.length; i++){
+            if(buttons[i].className == "betBtns" || buttons[i].className == "insBtns"){
+                buttons[i].hidden = true;
+            }
+            else{
+                buttons[i].hidden = false;
+            }
+        }
+    }
+    else if(overlay == "result"){
+        let buttons = document.getElementById("buttons").children;
+        for(let i = 0; i < buttons.length; i++){
+            buttons[i].hidden = true;
+        }
+    }
 }
 
 function hit(){
@@ -133,10 +202,12 @@ async function stay(){
     canHit = false;
     showCard();
 
+    dealerSum = lowerAce(dealerSum, dealerAceCount);
     while(dealerSum < 17){
+        updateSum();
         await sleep(750);
 
-        card = deck.pop();
+        let card = deck.pop();
         dealerAceCount += checkAce(card);
         dealerSum += getValue(card);
         dealerSum = lowerAce(dealerSum, dealerAceCount, "");
@@ -144,35 +215,65 @@ async function stay(){
         let image = document.createElement("img");
         image.src = "./cards/" + card + ".png";
         document.getElementById("dealer-cards").append(image);
-        updateSum();
     }
 
-    if(dealerSum > 21) endGame(2, "Dealer went bust. You win!" + "\n" + "Payout 2x.");
-    else if(playerSum > dealerSum) endGame(2, "You win!" + "\n" + "Payout 2x.");
-    else if(playerSum < dealerSum) endGame(0, "You lose!");
-    else endGame(1, "Game ends in a tie!" + "\n" + "Payout 1x.");
+    updateSum();
+    await sleep(750);
+    if(isDoubleDown){
+        let image = document.getElementById("player-cards").lastChild;
+        image.src = "./cards/" + playerHiddenCard + ".png";
+    
+        return;
+    }
+
+    if(dealerSum > 21) endGame(2, dealerBustMsg);
+    else if(playerSum > dealerSum) endGame(2, winMsg);
+    else if(playerSum < dealerSum) endGame(0, loseMsg);
+    else endGame(1, tieMsg);
 }
 
-async function endGame(multiplier, text){
+async function doubleDown(){
+    canHit = false;
+    isDoubleDown = true;
+    playerBalance -= bet;
+    document.getElementById("balance").innerHTML = playerBalance + "$";
+
+    playerHiddenCard = deck.pop();
+
+    let image = document.createElement("img");
+    image.src = "./cards/back.png";
+    document.getElementById("player-cards").append(image);
+
+    await sleep(750);
+    await stay();
+
+    playerAceCount += checkAce(playerHiddenCard);
+    playerSum += getValue(playerHiddenCard);
+    playerSum = lowerAce(playerSum, playerAceCount, "");
+
+    if(dealerSum > 21) endGame(4, winDdMsg);
+    else if(playerSum > dealerSum) endGame(4, winDdMsg);
+    else if(playerSum == dealerSum) endGame(2, tieMsg);
+    else endGame(0, loseMsg);
+}
+
+async function endGame(multiplier, message){
+    canHit = false;
     updateSum();
     playerBalance += bet * multiplier;
     document.getElementById("balance").innerHTML = playerBalance + "$";
     
     await sleep(1000);
-    document.getElementById("resultScreen").style.display = "flex";
-    document.getElementById("result").innerText = text;
+    toggleOverlay("result", message)
 
     await sleep(3000);
     let lowBalance = await checkBalance();
     if(lowBalance){
-        document.getElementById("resultScreen").style.display = "flex";
-        document.getElementById("result").innerText = "Balance is too low";
-        document.getElementById("buyIn").hidden = false;
+        toggleOverlay("buyIn", "Balance is too low", true)
         return;
     }
 
-    document.getElementById("resultScreen").style.display = "none";
-    document.getElementById("bet").style.display = "block";
+    toggleOverlay("bet", "Choose amount to bet:", true);
 }
 
 async function checkBalance(){
@@ -194,9 +295,7 @@ async function checkBalance(){
 function buyIn(){
     playerBalance = 100;
     document.getElementById("balance").innerHTML = playerBalance + "$";
-    document.getElementById("resultScreen").style.display = "none";
-    document.getElementById("buyIn").hidden = true;
-    document.getElementById("bet").style.display = "block";
+    toggleOverlay("bet", "Choose amount to bet:", true)
 }
 
 function lowerAce(sum, aceCount, hand){
@@ -222,10 +321,10 @@ function clear(){
 
 function showCard(){
     let image = document.getElementById("dealer-cards").lastChild;
-    image.src = "./cards/" + hiddenCard + ".png";
+    image.src = "./cards/" + dealerHiddenCard + ".png";
 
-    dealerSum += getValue(hiddenCard);
-    dealerAceCount += checkAce(hiddenCard);
+    dealerSum += getValue(dealerHiddenCard);
+    dealerAceCount += checkAce(dealerHiddenCard);
     updateSum();
 }
 
@@ -240,10 +339,10 @@ function sleep(msec){
 }
 
 async function insurance(bool){
-    document.getElementById("insurance").style.display = "none";
+    toggleOverlay("insurance", "")
     insuranceBet = bet / 2;
     
-    if(getValue(hiddenCard) == 10){
+    if(getValue(dealerHiddenCard) == 10){
         showCard();
         
         if(bool){
@@ -254,11 +353,10 @@ async function insurance(bool){
 
         playerBalance += insuranceBet;
         document.getElementById("balance").innerHTML = playerBalance + "$";
-        document.getElementById("resultScreen").style.display = "flex";
-        document.getElementById("result").innerText = "Dealer has Blackjack. You won the insurance bet." + "\n" + "Payout 2x insurance bet.";
+        toggleOverlay("result", insBlackJack)
 
         await sleep(3000);
-        document.getElementById("resultScreen").style.display = "none";
+        toggleOverlay();
         
         if(playerSum == 21) endGame(1, "The game ends in a tie!" + "\n" + "Payout 1x.")
         else endGame(0, "Dealer has Blackjack! You lose.")
@@ -268,11 +366,10 @@ async function insurance(bool){
 
         playerBalance -= insuranceBet;
         document.getElementById("balance").innerHTML = playerBalance + "$";
-        document.getElementById("resultScreen").style.display = "flex";
-        document.getElementById("result").innerText = "Dealer does not have Blackjack. You lost the insurance bet.";
+        toggleOverlay("result", insNoBlackJack);
 
         await sleep(3000);
-        document.getElementById("resultScreen").style.display = "none";
+        toggleOverlay();
     }
 }
 
