@@ -9,8 +9,8 @@ class Player {
         this.hiddenCard;
     }
 
-    setHand(card){
-        this.hand.push(card);
+    setHand(card, i){
+        this.hand[i] = card;
     }
 
     getHand(){
@@ -33,14 +33,14 @@ class Player {
         if(split) this.splitSum += num;
         else this.sum += num;
 
-        document.getElementById("player-sum").textContent = this.sum;
+        this.updateSumText();
     }
 
     setSum(num, split = false){
         if(split) this.splitSum = num;
         else this.sum = num;
 
-        document.getElementById("player-sum").textContent = this.sum;
+        this.updateSumText();
     }
 
     getSum(split = false){
@@ -69,6 +69,16 @@ class Player {
 
     getHiddenCard(){
         return this.hiddenCard;
+    }
+
+    updateSumText(){
+        let text;
+        if(isSplit || onSecondHand){
+            text = this.splitSum + " & " + this.sum;
+        }
+        else text = this.sum;
+
+        document.getElementById("player-sum").textContent = text;
     }
 
 }

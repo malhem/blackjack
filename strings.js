@@ -12,6 +12,7 @@ const insBlackJack = "Dealer has Blackjack. You won the insurance bet." + "\n" +
 const insNoBlackJack = "Dealer does not have Blackjack. You lost the insurance bet.";
 const dealerBustMsg = "Dealer went bust. You win!" + "\n" + "Payout 2x.";
 const winMsg = "You win!" + "\n" + "Payout 2x.";
+const blackjackMsg = "Blackjack! You win." + "\n" + "Payout 1.5x.";
 const winDdMsg = "You win!" + "\n" + "Payout 4x original bet.";
 const loseMsg = "You lose!";
 const bustMsg = "Bust! You lose."

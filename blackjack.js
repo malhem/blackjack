@@ -8,6 +8,7 @@ var isSplit = false;
 var onSecondHand = false;
 var bet = 0;
 var insuranceBet = 0;
+var overlapCount = 0;
 
 
 function start(amount){
@@ -27,10 +28,10 @@ async function dealFirstHand(){
         let card = deck.pop();
         player.addToSum(card.getValue());
         player.setAceCount(card.checkAce());
-        player.setHand(card);
+        player.setHand(card, i);
         
-        let image = document.createElement("img");
-        image.src = "./cards/" + card.getImageName() + ".png";
+        let image = await createImage(card.getImageName());
+        if(i === 0) image.style.marginLeft = "0%";
         document.getElementById("player-cards").append(image);
 
         await sleep(750);
@@ -44,8 +45,8 @@ async function dealFirstHand(){
             dealer.addToAceCount(card.checkAce());
         }
 
-        image = document.createElement("img");
-        image.src = "./cards/" + card.getImageName(hideCard) + ".png";
+        image = await createImage(card.getImageName(hideCard));
+        if(i === 0) image.style.marginLeft = "0%";
         document.getElementById("dealer-cards").append(image);
 
         hideCard = true;
@@ -55,21 +56,24 @@ async function dealFirstHand(){
 }
 
 function checkFirstHand(){
-    if(player.getSum() === 22){
-        let playerSum = lowerAce(player.getSum(), player.getAceCount(), "player");
-        player.setSum(playerSum)
+    let playerSum = player.getSum();
+    let playerBalance = player.getBalance();
+
+    if(playerSum === 22){
+        let lowerSum = lowerAce(player.getSum(), player.getAceCount(), "player");
+        player.setSum(lowerSum)
     }
-    else if(player.getSum() === 21){
+    else if(playerSum === 21){
         if(dealer.getAceCount() > 0){
             toggleOverlay("insurance", insuranceMsg);
         }
         else showCard();
         
         if(dealer.getSum() < 21){
-            endGame(1.5, "Blackjack! You win." + "\n" + "Payout 1.5x.");
+            endGame(1.5, blackjackMsg);
         }
     }
-    else if(player.getSum() === 9 || player.getSum() === 10 || player.getSum() === 11){
+    else if((playerSum === 9 || playerSum === 10 || playerSum === 11) && playerBalance >= bet){
         if(dealer.getAceCount() > 0){
             toggleOverlay("insurance", insuranceMsg);
         }
@@ -80,7 +84,9 @@ function checkFirstHand(){
     }
 
     let playerHand = player.getHand();
-    if(playerHand[0].value === playerHand[1].value){
+    console.log(playerHand[0].getValue());
+    console.log(playerHand[1].getValue());
+    if(playerHand[0].getValue() === playerHand[1].getValue() && playerBalance >= bet){
         document.getElementById("split").disabled = false;
     }
     
@@ -99,7 +105,7 @@ function checkFirstHand(){
     }
 }
 
-function hit(){
+async function hit(){
     document.getElementById("doubleDown").disabled = true;
     document.getElementById("split").disabled = true;
 
@@ -113,8 +119,7 @@ function hit(){
     player.addToSum(card.getValue());
     player.setAceCount(card.checkAce());
     
-    let image = document.createElement("img");
-    image.src = "./cards/" + card.getImageName() + ".png";
+    let image = await createImage(card.getImageName());
     document.getElementById("player-cards").append(image);
 
     if(player.getSum() === 21 && dealer.getSum() < 21 && dealer.getSum() > 16){
@@ -123,6 +128,7 @@ function hit(){
     else if(player.getSum() > 21){
         let playerSum = lowerAce(player.getSum(), player.getAceCount(), "player");
         player.setSum(playerSum);
+        console.log(player.getSum());
         if(player.getSum() > 21){
             if(isSplit) playSecondHand();
             else{
@@ -154,8 +160,7 @@ async function stay(){
         dealer.addToSum(card.getValue());
         dealer.setSum(lowerAce(dealer.getSum(), dealer.getAceCount(), ""));
 
-        let image = document.createElement("img");
-        image.src = "./cards/" + card.getImageName() + ".png";
+        let image = await createImage(card.getImageName());
         document.getElementById("dealer-cards").append(image);
     }
 
@@ -189,8 +194,7 @@ async function doubleDown(){
 
     player.setHiddenCard(deck.pop());
 
-    let image = document.createElement("img");
-    image.src = "./cards/back.png";
+    let image = await createImage("back");
     document.getElementById("player-cards").append(image);
 
     await sleep(750);
@@ -212,17 +216,27 @@ function split(){
     document.getElementById("split").disabled = true;
     document.getElementById("doubleDown").disabled = true;
     document.getElementById("player-cards").firstChild.remove();
-    document.getElementById("player-cards").style.marginRight = "-15%";
+    document.getElementById("player-cards").style.marginRight = "-30%";
     document.getElementById("player-cards").style.marginLeft = "15%";
 
     player.setBalance(-bet);
 
     let splitCard = player.getHand()[0];
-    player.addToSum(-splitCard.getValue());
-    player.setAceCount(-splitCard.checkAce());
-    player.addToSum(splitCard.getValue(), true);
-    player.setAceCount(splitCard.checkAce(), true);
-    
+    let mainCard = player.getHand()[1];
+
+    if(splitCard.getValue() === "A" && mainCard.getValue() === "A"){
+        player.setSum(11);
+        player.setSum(11, true);
+        player.setAceCount(1);
+        player.setAceCount(1, true);
+    }
+    else{
+        player.addToSum(-splitCard.getValue());
+        player.setAceCount(-splitCard.checkAce());
+        player.addToSum(splitCard.getValue(), true);
+        player.setAceCount(splitCard.checkAce(), true);
+    }
+
     let image = document.createElement("img");
     image.src = "./cards/" + splitCard.getImageName() + ".png";
     document.getElementById("splitHolder").append(image);
@@ -234,27 +248,29 @@ function playSecondHand(){
     document.querySelectorAll("#player-cards img").forEach(img => img.style.opacity = "0.5");
 }
 
-function hitSecondHand(){
+async function hitSecondHand(){
     let card = deck.pop();
     player.addToSum(card.getValue(), true);
     player.addToAceCount(card.checkAce(), true);
 
-    let image = document.createElement("img");
-    image.src = "./cards/" + card.getImageName() + ".png";
+    let image = await createImage(card.getImageName());
     document.getElementById("splitHolder").append(image);
 
     if(player.getSum(true) === 21 && dealer.getSum() < 21 && dealer.getSum() > 16){
         checkHands();
     }
     else if(player.getSum(true) > 21){
-        let playerSplitSum = lowerAce(player.getSum(true), player.getAceCount(true), "playerSplit");
-        player.setSum(playerSplitSum, true);
-        if(dealer.getSum() < 17){
-            stay();
-        }
-        else if(player.getSum(true) > 21){
-            showCard();
-            checkHands();
+        let lowerSplitSum = lowerAce(player.getSum(true), player.getAceCount(true), "playerSplit");
+        player.setSum(lowerSplitSum, true);
+        
+        if(player.getSum(true) > 21){
+            if(dealer.getSum() < 17){
+                stay();
+            }
+            else{
+                showCard();
+                checkHands();
+            }
         }
     }
 }
@@ -371,10 +387,21 @@ function lowerAce(sum, aceCount, hand){
 
 function showCard(){
     let image = document.getElementById("dealer-cards").lastChild;
-    image.src = "./cards/" + dealer.getHiddenCard().getImageName() + ".png";
+    let card = dealer.getHiddenCard();
+    image.src = "./cards/" + card.getImageName() + ".png";
 
-    dealer.addToSum(dealer.getHiddenCard().getValue());
-    dealer.addToAceCount(dealer.getHiddenCard().checkAce());
+    dealer.addToSum(card.getValue());
+    dealer.addToAceCount(card.checkAce());
+}
+
+async function createImage(cardName){
+    let image = document.createElement("img");
+    image.src = "./cards/" + cardName + ".png";
+    overlapCount++;
+    image.style.zIndex = overlapCount;
+    image.style.marginLeft = "-30%"
+
+    return image;
 }
 
 function toggleOverlay(overlay, message, change = false){
@@ -439,7 +466,7 @@ function newGame(){
 
     document.getElementById("hit").disabled = false;
     document.getElementById("stay").disabled = false;
-    document.getElementById("player-cards").style.marginRight = "0";
+    document.getElementById("player-cards").style.marginRight = "-5%";
     document.getElementById("player-cards").style.marginLeft = "0";
     document.querySelectorAll("#dealer-cards img").forEach(img => img.remove());
     document.querySelectorAll("#player-cards img").forEach(img => img.remove());

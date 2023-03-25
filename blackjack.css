@@ -21,7 +21,7 @@ html, body, #container{
 }
 
 #topContainer, #botContainer{
-    margin: 2%;
+    margin: 1%;
     height: 30%;
 }
 
@@ -38,27 +38,25 @@ html, body, #container{
     width: 16%;
     display: flex;
     justify-content: flex-start;
+    margin-right: -5%;
 } 
 
 #dealer-cards img, #player-cards img, #deck{
     height: 100%;
     width: 50%;
-    margin: 1px;
 }
 
 #splitHolder{
     display: flex;
     justify-content: flex-start;
     height: 100%;
-    width: 8%;
-    margin-right: 17%;
-    margin-left: -25%;
+    width: 16%;
+    margin-left: -16%;
 }
 
 #splitHolder img{
     height: 100%;
-    width: 100%;
-    margin: 1px;
+    width: 50%;
 }
 
 #deck{
@@ -80,6 +78,7 @@ html, body, #container{
 
 #gameButtons{
     height: 20%;
+    margin-top: 2%;
 }
 
 #hit, #stay, #split, #doubleDown{
@@ -102,7 +101,7 @@ h2{
     justify-content: center;
     align-items: center;
     position: absolute;
-    z-index: 10;
+    z-index: 1000;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.8);
@@ -161,30 +160,36 @@ button:hover{
 }
 
 @media only screen and (max-width: 950px) {
-    #dealer-cards, #player-cards{
-        width: 55%;
-        height: 45%;
+    #dealer-cards, #player-cards, #splitHolder, #deck{
+        width: 30%;
+        height: 55%;
     }
-
-
+    
+    #splitHolder{
+        width: 18%;
+    }
+    
     #deck{
-        height: 45%;
-        width: 11%;
-        margin-right: 10%;
-        margin-left: -20%;
+        width: 18%;
+        margin-right: 13%;
+        margin-left: -30%;
     }
 
     #dealer-cards img, #player-cards img{
-        width: 22%;
+        width: 60%;
     }
 
-    #hit, #stay, #split, #doubleDown{
+    #splitHolder img{
+        width: 100%;
+    }
+
+    #gameButtons > button{
         width: 15%;
         height: 70%;
         font-size: 3vw;
     }
 
-    #doubleDown{
+    #gameButtons > #doubleDown{
         width: 25%;
     }
 
