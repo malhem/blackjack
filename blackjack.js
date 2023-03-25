@@ -10,6 +10,19 @@ var bet = 0;
 var insuranceBet = 0;
 var overlapCount = 0;
 
+let gameButtons = document.getElementById("gameButtons");
+gameButtons.onclick = function(event){
+    switch(event.target.id){
+        case "hit": hit();
+        break;
+        case "stay": stay();
+        break;
+        case "doubleDown": doubleDown();
+        break;
+        case "split": split();
+        break;
+    }
+}
 
 function start(amount){
     bet = amount;
@@ -27,7 +40,7 @@ async function dealFirstHand(){
         
         let card = deck.pop();
         player.addToSum(card.getValue());
-        player.setAceCount(card.checkAce());
+        player.addToAceCount(card.checkAce());
         player.setHand(card, i);
         
         let image = await createImage(card.getImageName());
@@ -89,20 +102,9 @@ function checkFirstHand(){
     if(playerHand[0].getValue() === playerHand[1].getValue() && playerBalance >= bet){
         document.getElementById("split").disabled = false;
     }
-    
-    let gameButtons = document.getElementById("gameButtons");
-    gameButtons.onclick = function(event){
-        switch(event.target.id){
-            case "hit": hit();
-            break;
-            case "stay": stay();
-            break;
-            case "doubleDown": doubleDown();
-            break;
-            case "split": split();
-            break;
-        }
-    }
+
+    document.getElementById("hit").disabled = false;
+    document.getElementById("stay").disabled = false;
 }
 
 async function hit(){
@@ -117,7 +119,7 @@ async function hit(){
 
     let card = deck.pop();
     player.addToSum(card.getValue());
-    player.setAceCount(card.checkAce());
+    player.addToAceCount(card.checkAce());
     
     let image = await createImage(card.getImageName());
     document.getElementById("player-cards").append(image);
@@ -301,15 +303,17 @@ function checkHands(){
         }
     }
     else{
-        if(playerSum > dealerSum && playerSum <= 21){
+        if(playerSum >= dealerSum && playerSum <= 21){
             if(playerSplitSum > dealerSum && playerSplitSum <= 21) endGame(4, winBothMsg);
             else if(playerSplitSum === dealerSum) endGame(3, winTieMsg);
+            else if(playerSum === dealerSum) endGame(1, tieOneMsg);
             else endGame(2, winOneMsg);
         }
         else{
-            if(playerSplitSum > dealerSum && playerSplitSum <= 21){
+            if(playerSplitSum >= dealerSum && playerSplitSum <= 21){
                 if(playerSum > dealerSum && playerSum <= 21) endGame(4, winBothMsg);
                 else if(playerSum === dealerSum) endGame(3, winTieMsg);
+                else if(playerSplitSum === dealerSum) endGame(1, tieOneMsg);
                 else endGame(2, winOneMsg);
             }
             else endGame(0, loseBothMsg);
@@ -423,6 +427,10 @@ function toggleOverlay(overlay, message, change = false){
         }
     }
     else if(overlay === "insurance"){
+        let bool;
+        player.getBalance() < insuranceBet ? bool = true : bool = false;
+        document.getElementById("insuranceBet").disabled = bool;
+
         for(let i = 0; i < buttons.length; i++){
             if(buttons[i].className === "betBtns" || buttons[i].id === "buyIn"){
                 buttons[i].hidden = true;
@@ -464,8 +472,6 @@ function newGame(){
     isSplit = false;
     onSecondHand = false;
 
-    document.getElementById("hit").disabled = false;
-    document.getElementById("stay").disabled = false;
     document.getElementById("player-cards").style.marginRight = "-5%";
     document.getElementById("player-cards").style.marginLeft = "0";
     document.querySelectorAll("#dealer-cards img").forEach(img => img.remove());
@@ -477,6 +483,8 @@ function newGame(){
 }
 
 async function endGame(multiplier, message){
+    console.log(player.getSum());
+    console.log(player.getSum(true));
     canHit = false;
     player.setBalance(bet * multiplier);
     

@@ -66,7 +66,7 @@ html, body, #container{
     margin-left: -25%;
 }
 
-#player-cards img{
+#player-cards img, #splitHolder img:not(:first-child){
     -webkit-animation: slideDown 0.5s forwards;
     animation: slideDown 0.5s forwards;
 }

@@ -6,12 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blackjack</title>
     <link rel="stylesheet" href="blackjack.css">
-    <script src="card.js"></script>
-    <script src="deck.js"></script>
-    <script src="dealer.js"></script>
-    <script src="player.js"></script>
-    <script src="strings.js"></script>
-    <script src="blackjack.js"></script>
+    <script src="card.js" defer></script>
+    <script src="deck.js" defer></script>
+    <script src="dealer.js" defer></script>
+    <script src="player.js" defer></script>
+    <script src="strings.js" defer></script>
+    <script src="blackjack.js" defer></script>
 </head>
 <body>
     <div id="container">
@@ -30,10 +30,10 @@
             </div>
             <br>
             <div id="gameButtons">
-                <button id="hit">Hit</button>
-                <button id="stay">Stay</button>
-                <button id="split" disabled="true">Split</button>
-                <button id="doubleDown" disabled="true">Double down</button>
+                <button id="hit" title="Ask for another card.">Hit</button>
+                <button id="stay" title="Keep hand.">Stay</button>
+                <button id="split" disabled="true" title="Split your hand into two hands.">Split</button>
+                <button id="doubleDown" disabled="true" title="Double your bet and receive one more card.">Double down</button>
             </div>
             <h2>Balance: <span id="balance">100$</span></h2>
         </div>
